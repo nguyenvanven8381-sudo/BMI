@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Tính Chỉ Số BMI Chuẩn</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --primary-blue: #2b5876;
+            --secondary-blue: #4e4376;
+            --text-dark: #2c3e50;
+            --text-light: #606f7b;
+            --accent-cold: #00d2ff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-dark);
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 480px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 15px;
+        }
+
+        /* Thết kế cụm chọn Giới tính kiểu Tab lạnh */
+        .gender-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .gender-radio {
+            display: none;
+        }
+
+        .gender-label {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border: 2px solid #d1d8e0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--text-light);
+            background: #f8fafc;
+        }
+
+        #male:checked ~ .label-male {
+            border-color: #3498db;
+            background-color: #e8f4fd;
+            color: #2980b9;
+        }
+
+        #female:checked ~ .label-female {
+            border-color: #9b59b6;
+            background-color: #f5eef8;
+            color: #8e44ad;
+        }
+
+        /* Input Nhập Liệu */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            outline: none;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent-cold);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+            background: #fff;
+        }
+
+        .unit {
+            position: absolute;
+            right: 16px;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Nút tính toán */
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(43, 88, 118, 0.3);
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(43, 88, 118, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Khu vực hiển thị kết quả */
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #edf2f7;
+            border-left: 5px solid #cbd5e0;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bmi-score {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+        }
+
+        .bmi-status {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .bmi-advice {
+            font-size: 14px;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Kiểm Tra Chỉ Số BMI</h1>
+        <p class="subtitle">Tính toán khoa học theo giới tính và thể trạng</p>
+
+        <!-- Giới tính -->
+        <div class="form-group">
+            <label>Giới tính</label>
+            <div class="gender-group">
+                <input type="radio" id="male" name="gender" class="gender-radio" checked>
+                <label for="male" class="gender-label label-male">Nam</label>
+
+                <input type="radio" id="female" name="gender" class="gender-radio">
+                <label for="female" class="gender-label label-female">Nữ</label>
+            </div>
+        </div>
+
+        <!-- Chiều cao -->
+        <div class="form-group">
+            <label for="height">Chiều cao</label>
+            <div class="input-wrapper">
+                <input type="number" id="height" placeholder="Ví dụ: 170" min="50" max="250" step="0.1" required>
+                <span class="unit">cm</span>
+            </div>
+        </div>
+
+        <!-- Cân nặng -->
+        <div class="form-group">
+            <label for="weight">Cân nặng</label>
+            <div class="input-wrapper">
+                <input type="number" id="weight" placeholder="Ví dụ: 65" min="10" max="300" step="0.1" required>
+                <span class="unit">kg</span>
+            </div>
+        </div>
+
+        <button onclick="calculateBMI()">Tính toán ngay</button>
+
+        <!-- Kết quả -->
+        <div id="result" class="result-box">
+            <div class="bmi-score" id="bmiValue">22.5</div>
+            <div class="bmi-status" id="bmiStatus">Bình thường</div>
+            <div class="bmi-advice" id="bmiAdvice">Tuyệt vời! Bạn đang có một cơ thể cân đối. Hãy tiếp tục duy trì chế độ ăn và tập luyện hiện tại nhé.</div>
+        </div>
+    </div>
+
+    <script>
+        function calculateBMI() {
+            const heightInput = document.getElementById('height').value;
+            const weightInput = document.getElementById('weight').value;
+            const isMale = document.getElementById('male').checked;
+            const resultBox = document.getElementById('result');
+
+            // Kiểm tra nhập liệu hợp lệ
+            if (!heightInput || !weightInput || heightInput <= 0 || weightInput <= 0) {
+                alert("Vui lòng nhập chiều cao và cân nặng hợp lệ.");
+                return;
+            }
+
+            // Chuyển đổi chiều cao từ cm sang mét
+            const heightInMeters = heightInput / 100;
+            // Công thức chung tính BMI
+            const bmi = (weightInput / (heightInMeters * heightInMeters)).toFixed(1);
+
+            let status = "";
+            let advice = "";
+            let color = "";
+
+            // Phân loại logic chính xác theo giới tính (Tiêu chuẩn IDI & WPRO dành cho người châu Á)
+            if (isMale) {
+                if (bmi < 18.5) {
+                    status = "Thiếu cân (Nam)";
+                    advice = "Thể trạng của bạn hơi gầy. Hãy bổ sung thêm dinh dưỡng giàu protein và kết hợp tập gym tăng cơ.";
+                    color = "#3182ce"; // Xanh dương đậm lạnh
+                } else if (bmi >= 18.5 && bmi < 23) {
+                    status = "Cân đối (Nam)";
+                    advice = "Thân hình rất chuẩn nam tính! Hãy tiếp tục duy trì lối sống lành mạnh và rèn luyện thể thao đều đặn.";
+                    color = "#2b6cb0"; // Xanh ngọc lục bảo lạnh
+                } else if (bmi >= 23 && bmi < 25) {
+                    status = "Thừa cân nhẹ (Nam)";
+                    advice = "Bạn đang có xu hướng tăng cân. Nên giảm bớt tinh bột xấu, hạn chế bia rượu và tăng cường cardio nhé.";
+                    color = "#4a5568"; // Xám đậm
+                } else {
+                    status = "Béo phì (Nam)";
+                    advice = "Cảnh báo béo phì! Bạn cần lên lịch trình giảm cân rõ rệt để tránh nguy cơ ảnh hưởng tới tim mạch và xương khớp.";
+                    color = "#1a202c"; // Đen xám lạnh
+                }
+            } else {
+                // Phân loại đối với Nữ
+                if (bmi < 18.5) {
+                    status = "Thiếu cân (Nữ)";
+                    advice = "Sức khỏe có thể bị ảnh hưởng do thiếu cân. Bạn nên ăn uống điều độ, bổ sung các chất béo tốt và khoáng chất.";
+                    color = "#3182ce";
+                } else if (bmi >= 18.5 && bmi < 23) {
+                    status = "Vóc dáng lý tưởng (Nữ)";
+                    advice = "Chỉ số hoàn hảo! Vóc dáng của bạn đang rất cân đối. Hãy giữ vững chế độ sinh hoạt này nhé.";
+                    color = "#2b6cb0";
+                } else if (bmi >= 23 && bmi < 25) {
+                    status = "Thừa cân nhẹ (Nữ)";
+                    advice = "Cơ thể bắt đầu tích mỡ thừa. Bạn có thể tham gia các lớp Yoga hoặc Pilates để giữ dáng thon gọn hơn.";
+                    color = "#4a5568";
+                } else {
+                    status = "Béo phì (Nữ)";
+                    advice = "Bạn cần lưu ý đặc biệt đến cân nặng hiện tại. Hãy điều chỉnh thực đơn giảm calo và tập thể dục đều đặn hàng ngày.";
+                    color = "#1a202c";
+                }
+            }
+
+            // Hiển thị kết quả lên giao diện
+            document.getElementById('bmiValue').innerText = bmi;
+            document.getElementById('bmiStatus').innerText = status;
+            document.getElementById('bmiStatus').style.color = color;
+            document.getElementById('bmiAdvice').innerText = advice;
+            
+            resultBox.style.display = "block";
+            resultBox.style.borderLeftColor = color;
+        }
+    </script>
+</body>
+</html>
